@@ -33,7 +33,7 @@ export const signUp = async (request, response, next) => {
     response.status(201).json({
       message: 'User registered',
       user: {
-        id: 1,
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -107,7 +107,7 @@ export const signOut = async (request, response, next) => {
       message: 'User signed out successfully',
     });
   } catch (error) {
-    logger.error('Sig out error', error);
+    logger.error('Sign out error', error);
     next(error);
   }
 };
