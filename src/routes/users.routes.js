@@ -1,20 +1,20 @@
-import express from "express";
+import express from 'express';
 
 import {
   deleteUserById,
   fetchAllUsers,
   fetchUserById,
   updateUserById,
-} from "#controllers/users.controller.js";
+} from '#controllers/users.controller.js';
 
 const userRouter = express.Router();
 
-userRouter.get("/", fetchAllUsers);
+userRouter.get('/', fetchAllUsers);
 
-userRouter.get("/:id", fetchUserById);
+userRouter.get('/:id', fetchUserById);
 
-userRouter.put("/:id", updateUserById);
+userRouter.put('/:id', updateUserById);
 
-userRouter.delete("/:id", deleteUserById);
+userRouter.delete('/:id', deleteUserById);
 
 export default userRouter;

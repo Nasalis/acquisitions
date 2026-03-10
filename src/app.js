@@ -1,14 +1,14 @@
-import express from "express";
-import logger from "#config/logger.js";
-import helmet from "helmet";
-import morgan from "morgan";
-import cors from "cors";
-import cookieParser from "cookie-parser";
+import express from 'express';
+import logger from '#config/logger.js';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
-import { securityMiddleware } from "#middleware/security.middleware.js";
+import { securityMiddleware } from '#middleware/security.middleware.js';
 
-import authRoutes from "#routes/auth.routes.js";
-import usersRoutes from "#routes/users.routes.js";
+import authRoutes from '#routes/auth.routes.js';
+import usersRoutes from '#routes/users.routes.js';
 
 const app = express();
 
@@ -20,31 +20,35 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(
-  morgan("combined", {
-    stream: { write: (message) => logger.info(message.trim()) },
-  }),
+  morgan('combined', {
+    stream: { write: message => logger.info(message.trim()) },
+  })
 );
 
 app.use(securityMiddleware);
 
-app.get("/", (request, response) => {
-  logger.info("Hello from Acquisitions API");
-  response.status(200).json({ message: "Hello world" });
+app.get('/', (request, response) => {
+  logger.info('Hello from Acquisitions API');
+  response.status(200).json({ message: 'Hello world' });
 });
 
-app.get("/health", (request, response) => {
+app.get('/health', (request, response) => {
   response.status(200).json({
-    status: "ok",
+    status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   });
 });
 
-app.get("/api", (request, response) => {
-  response.status(200).json({ message: "Acquisitions API is running" });
+app.get('/api', (request, response) => {
+  response.status(200).json({ message: 'Acquisitions API is running' });
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/users", usersRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
+
+app.use((request, response) => {
+  response.status(404).json({ error: 'Route not found' });
+});
 
 export default app;

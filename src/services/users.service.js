@@ -1,7 +1,7 @@
-import { database } from "#config/database.js";
-import logger from "#config/logger.js";
-import { users } from "#models/user.model.js";
-import { eq, getTableColumns } from "drizzle-orm";
+import { database } from '#config/database.js';
+import logger from '#config/logger.js';
+import { users } from '#models/user.model.js';
+import { eq, getTableColumns } from 'drizzle-orm';
 
 export const getAllUsers = async () => {
   try {
@@ -15,12 +15,12 @@ export const getAllUsers = async () => {
       })
       .from(users);
   } catch (error) {
-    logger.error("Error getting users", error);
+    logger.error('Error getting users', error);
     throw error;
   }
 };
 
-export const getUserByID = async (id) => {
+export const getUserByID = async id => {
   try {
     const [user] = await database
       .select({
@@ -34,7 +34,7 @@ export const getUserByID = async (id) => {
       .limit(1);
 
     if (!user) {
-      throw new Error("User not found");
+      throw new Error('User not found');
     }
 
     return user;
@@ -75,12 +75,12 @@ export const updateUser = async (id, updates) => {
     logger.info(`User ${updateUser.email} updated successfully`);
     return updateUser;
   } catch (error) {
-    logger.error(`Error updating user`, error);
+    logger.error('Error updating user', error);
     throw error;
   }
 };
 
-export const deleteUser = async (id) => {
+export const deleteUser = async id => {
   try {
     await getUserByID(id);
 
@@ -96,7 +96,7 @@ export const deleteUser = async (id) => {
     logger.info(`User ${deleteUser.email} deleted successfully`);
     return deletedUser;
   } catch (error) {
-    logger.error("Error deleting user");
+    logger.error('Error deleting user');
     throw error;
   }
 };

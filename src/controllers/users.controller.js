@@ -1,14 +1,14 @@
-import logger from "#config/logger.js";
+import logger from '#config/logger.js';
 import {
   deleteUser,
   getAllUsers,
   getUserByID,
   updateUser,
-} from "#services/users.service.js";
+} from '#services/users.service.js';
 
 export const fetchAllUsers = async (request, response, next) => {
   try {
-    logger.info("Getting users...");
+    logger.info('Getting users...');
     const allUsers = await getAllUsers();
 
     response.status(200).json({ count: allUsers.length, data: allUsers });
@@ -20,7 +20,7 @@ export const fetchAllUsers = async (request, response, next) => {
 
 export const fetchUserById = async (request, response, next) => {
   try {
-    logger.info("Fetching user...");
+    logger.info('Fetching user...');
 
     const { id } = request.params;
 
@@ -35,7 +35,7 @@ export const fetchUserById = async (request, response, next) => {
 
 export const updateUserById = async (request, response, next) => {
   try {
-    logger.info("Updating user...");
+    logger.info('Updating user...');
 
     const { id } = request.params;
 
@@ -50,7 +50,7 @@ export const updateUserById = async (request, response, next) => {
 
 export const deleteUserById = async (request, response, next) => {
   try {
-    logger.info("Deleting user...");
+    logger.info('Deleting user...');
 
     const { id } = request.params;
 
