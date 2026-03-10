@@ -1,0 +1,111 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  pull_request:
+    branches:
+      - main
+      - staging
+
+jobs:
+  test:
+    name: Run test suite
+    runs-on: ubuntu-latest
+
+    env:
+      NODE_ENV: test
+      NODE_OPTIONS: --experimental-vm-modules
+      # Callers must supply DATABASE_URL as a repository / environment secret.
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # ─── Test execution ────────────────────────────────────────────────────
+      - name: Run tests
+        id: run_tests
+        # Capture exit code manually so downstream steps can still run even
+        # when tests fail; we re-raise the failure at the end.
+        run: |
+          npm test 2>&1 | tee test-output.txt
+          echo "TEST_EXIT_CODE=${PIPESTATUS[0]}" >> "$GITHUB_ENV"
+        continue-on-error: true
+
+      # ─── Coverage artefacts ────────────────────────────────────────────────
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          # Adjust the path below if your test runner writes coverage elsewhere
+          # (e.g. jest → coverage/, vitest → coverage/).
+          path: |
+            coverage/
+            test-output.txt
+          retention-days: 30
+
+      # ─── Step summary ──────────────────────────────────────────────────────
+      - name: Generate GitHub step summary
+        if: always()
+        run: |
+          {
+            echo "## 🧪 Test Results"
+            echo ""
+
+            if [ "$TEST_EXIT_CODE" = "0" ]; then
+              echo "### ✅ All tests passed"
+            else
+              echo "### ❌ Some tests failed  (exit code: $TEST_EXIT_CODE)"
+            fi
+
+            echo ""
+            echo "### Raw output"
+            echo '```'
+            cat test-output.txt || echo "(no output captured)"
+            echo '```'
+
+            # Append coverage summary if the file exists (Jest / c8 style)
+            if [ -f coverage/coverage-summary.json ]; then
+              echo ""
+              echo "### Coverage summary"
+              echo '```json'
+              cat coverage/coverage-summary.json
+              echo '```'
+            elif [ -f coverage/index.html ]; then
+              echo ""
+              echo "> Coverage HTML report uploaded as an artifact."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # ─── Failure annotations ───────────────────────────────────────────────
+      - name: Annotate test failures
+        if: env.TEST_EXIT_CODE != '0'
+        run: |
+          # Emit a workflow-level error annotation visible in the PR / push view.
+          echo "::error title=Tests failed::One or more tests did not pass. \
+          Review the 'Run tests' step output and the uploaded coverage artifact \
+          for details."
+
+          # Attempt to surface individual failure lines as annotations.
+          # This pattern matches Jest / Vitest "● Test name" failure headers.
+          while IFS= read -r line; do
+            if echo "$line" | grep -qE "^  (●|FAIL|✗|×)"; then
+              echo "::warning title=Test failure::${line}"
+            fi
+          done < test-output.txt
+
+          # Re-raise so the job is marked as failed.
+          exit 1
